@@ -1,17 +1,21 @@
-%global lit_version 15.0.7
+%global lit_version 16.0.6
 #%%global post_ver 0
 
 %bcond_without check
 
 Name: python-lit
 Version: %{lit_version}
-Release: 1%{?dist}
+Release: 2%{?dist}
 BuildArch: noarch
 
 License: NCSA
 Summary: Tool for executing llvm test suites
 URL: https://pypi.python.org/pypi/lit
 Source0: %{pypi_source lit %{lit_version}%{?post_ver:.post%{post_ver}}}
+# Remove the license file if it gets included in the tarball again.
+Source1: https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-%{lit_version}%{?rc_ver:rc%{rc_ver}}/llvm/utils/lit/LICENSE.TXT
+
+Patch0: D149746.diff
 
 # for file check
 %if %{with check}
@@ -33,6 +37,7 @@ lit is a tool used by the LLVM project for executing its test suites.
 
 %prep
 %autosetup -n lit-%{lit_version}%{?post_ver:.post%{post_ver}} -p4
+cp %{SOURCE1} ./
 
 %build
 %py3_build
@@ -50,11 +55,17 @@ sed -i -e '1{\@^#!/usr/bin/env python@d}' %{buildroot}%{python3_sitelib}/lit/*.p
 
 %files -n python3-lit
 %license LICENSE.TXT
-%doc README.txt
+%doc README.rst
 %{python3_sitelib}/*
 %{_bindir}/lit
 
 %changelog
+* Fri Jun 30 2023 Nikita Popov <npopov@redhat.com> - 16.0.6-2
+- Update to LLVM 16.0.6
+
+* Thu Apr 13 2023 Nikita Popov <npopov@redhat.com> - 16.0.1-1
+- Update to LLVM 16.0.1
+
 * Tue Jan 17 2023 Konrad Kleine <kkleine@redhat.com> - 15.0.7-1
 - Update to 15.0.7
 
