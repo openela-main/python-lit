@@ -1,20 +1,39 @@
-%global lit_version 16.0.6
-#global rc_ver 1
-#%%global post_ver 1
+%bcond_with snapshot_build
+
+%if %{with snapshot_build}
+# Unlock LLVM Snapshot LUA functions
+%{llvm_sb_verbose}
+%{llvm_sb}
+%endif
+
+%global lit_version 17.0.6
+#global rc_ver 4
+#global post_ver 0
+
+%global python_lit_srcdir %{srcname}-%{version}%{?rc_ver:rc%{rc_ver}}%{?post_ver:.post%{post_ver}}
+
+%if %{with snapshot_build}
+%undefine rc_ver
+%global lit_version %{llvm_snapshot_version}
+%global python_lit_srcdir llvm-%{lit_version}.src/utils/lit
+%endif
 
 %bcond_without check
 
 Name: python-lit
-Version: %{lit_version}%{?rc_ver:~rc%{rc_ver}}
+Version: %{lit_version}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
 Release: 1%{?dist}
 BuildArch: noarch
 
 License: NCSA
 Summary: Tool for executing llvm test suites
 URL: https://pypi.python.org/pypi/lit
+%if %{without snapshot_build}
 Source0: %{pypi_source lit %{lit_version}%{?rc_ver:rc%{rc_ver}}%{?post_ver:.post%{post_ver}}}
-# Remove the license file if it gets included in the tarball again.
-Source1: https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-%{lit_version}%{?rc_ver:rc%{rc_ver}}/llvm/utils/lit/LICENSE.TXT
+%else
+Source0:  %{llvm_snapshot_source_prefix}llvm-%{llvm_snapshot_yyyymmdd}.src.tar.xz
+%{llvm_snapshot_extra_source_tags}
+%endif
 
 # for file check
 %if %{with check}
@@ -30,13 +49,17 @@ lit is a tool used by the LLVM project for executing its test suites.
 Summary: LLVM lit test runner for Python 3
 
 Requires: python3-setuptools
+Recommends: python3-psutil
 
 %description -n python3-lit
 lit is a tool used by the LLVM project for executing its test suites.
 
 %prep
+%if %{with snapshot_build}
+%autosetup -n %{python_lit_srcdir} -p4
+%else
 %autosetup -n lit-%{lit_version}%{?rc_ver:rc%{rc_ver}}%{?post_ver:.post%{post_ver}} -p4
-cp %{SOURCE1} ./
+%endif
 
 %build
 %py3_build
@@ -47,7 +70,7 @@ cp %{SOURCE1} ./
 # Strip out #!/usr/bin/env python
 sed -i -e '1{\@^#!/usr/bin/env python@d}' %{buildroot}%{python3_sitelib}/lit/*.py
 
-%if %{with check}
+%if %{with check} && %{without snapshot_build}
 %check
 %{__python3} lit.py -v tests
 %endif
@@ -59,6 +82,12 @@ sed -i -e '1{\@^#!/usr/bin/env python@d}' %{buildroot}%{python3_sitelib}/lit/*.p
 %{_bindir}/lit
 
 %changelog
+* Wed Nov 29 2023 Nikita Popov <npopov@redhat.com> - 17.0.6-1
+- Update to LLVM 17.0.6
+
+* Wed Oct 04 2023 Nikita Popov <npopov@redhat.com> - 17.0.2-1
+- Update to LLVM 17.0.2
+
 * Sat Jun 17 2023 Tom Stellard <tstellar@redhat.com> - 16.0.6-1
 - 16.0.6 Release
 
