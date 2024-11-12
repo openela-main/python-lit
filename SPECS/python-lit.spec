@@ -6,7 +6,7 @@
 %{llvm_sb}
 %endif
 
-%global lit_version 17.0.6
+%global lit_version 18.1.8
 #global rc_ver 4
 #global post_ver 0
 
@@ -25,7 +25,7 @@ Version: %{lit_version}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%
 Release: 1%{?dist}
 BuildArch: noarch
 
-License: NCSA
+License: Apache-2.0 WITH LLVM-exception OR NCSA
 Summary: Tool for executing llvm test suites
 URL: https://pypi.python.org/pypi/lit
 %if %{without snapshot_build}
@@ -82,6 +82,15 @@ sed -i -e '1{\@^#!/usr/bin/env python@d}' %{buildroot}%{python3_sitelib}/lit/*.p
 %{_bindir}/lit
 
 %changelog
+* Wed Jul 17 2024 Konrad Kleine <kkleine@redhat.com> - 18.1.8-1
+- Update to LLVM 18.1.8
+
+* Tue May 21 2024 Konrad Kleine <kkleine@redhat.com> 18.1.6-1
+- 18.1.6 release
+
+* Fri May 17 2024 Konrad Kleine <kkleine@redhat.com> 18.1.4-1
+- 18.1.4 release
+
 * Tue Dec 05 2023 Timm Bäder <tbaeder@redhat.com> - 17.0.6-1
 - Update to 17.0.6
 
